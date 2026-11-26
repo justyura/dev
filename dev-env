@@ -16,10 +16,19 @@ DEV_ENV=${DEV_ENV:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
 XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 OS=$(uname -s)
 
-# 只在 macOS 上复制的目录
-MACOS_ONLY=(karabiner sketchybar skhd yabai)
-# 家目录下的单个文件
-HOME_FILES=(.zshrc .zshenv .zprofile)
+# 机器模式：desktop（全部）或 server（只管 nvim/tmux/sessionizer 和 ~/.local/bin）。
+# 每台机器在 ~/.config/dev-env.local 里写 DEV_PROFILE=server 之类（这个文件不进仓库，dev-env 不碰它）。
+# 没写时：macOS 默认 desktop，其他系统默认 server。
+[[ -f $XDG_CONFIG_HOME/dev-env.local ]] && source "$XDG_CONFIG_HOME/dev-env.local"
+if [[ -z ${DEV_PROFILE:-} ]]; then
+    if [[ $OS == Darwin ]]; then DEV_PROFILE=desktop; else DEV_PROFILE=server; fi
+fi
+
+# 所有机器都管的目录
+COMMON_CONFIG=(nvim tmux tmux-sessionizer)
+# 只有 desktop 才管：Mac 桌面这一套，以及 zsh
+DESKTOP_CONFIG=(scripts karabiner sketchybar skhd yabai)
+DESKTOP_HOME_FILES=(.zshrc .zshenv .zprofile)
 
 dry=0
 [[ ${1:-} == "--dry" ]] && dry=1
@@ -33,20 +42,23 @@ run() {
     [[ $dry == 1 ]] || "$@"
 }
 
-is_macos_only() {
+managed() {
     local name=$1 m
-    for m in "${MACOS_ONLY[@]}"; do [[ $m == "$name" ]] && return 0; done
+    for m in "${COMMON_CONFIG[@]}"; do [[ $m == "$name" ]] && return 0; done
+    if [[ $DEV_PROFILE == desktop ]]; then
+        for m in "${DESKTOP_CONFIG[@]}"; do [[ $m == "$name" ]] && return 0; done
+    fi
     return 1
 }
 
-log "env: $DEV_ENV  ($OS)"
+log "env: $DEV_ENV  ($OS, profile=$DEV_PROFILE)"
 
 log "~/.config:"
 for src in "$DEV_ENV"/env/.config/*/; do
     src=${src%/}
     name=$(basename "$src")
-    if [[ $OS != Darwin ]] && is_macos_only "$name"; then
-        log "    skip $name (macOS only)"
+    if ! managed "$name"; then
+        log "    skip $name ($DEV_PROFILE)"
         continue
     fi
     run rm -rf "${XDG_CONFIG_HOME:?}/$name"
@@ -61,7 +73,8 @@ for f in "$DEV_ENV"/env/.local/bin/*; do
 done
 
 log "~/:"
-for f in "${HOME_FILES[@]}"; do
+[[ $DEV_PROFILE == desktop ]] || DESKTOP_HOME_FILES=()
+for f in "${DESKTOP_HOME_FILES[@]}"; do
     [[ -f $DEV_ENV/env/$f ]] || continue
     run cp "$DEV_ENV/env/$f" "$HOME/$f"
 done
@@ -71,7 +84,7 @@ log "reload:"
 if command -v tmux >/dev/null && tmux info &>/dev/null; then
     run tmux source-file "$XDG_CONFIG_HOME/tmux/tmux.conf"
 fi
-if [[ $OS == Darwin ]]; then
+if [[ $DEV_PROFILE == desktop && $OS == Darwin ]]; then
     command -v skhd >/dev/null && run skhd --reload
     command -v sketchybar >/dev/null && run sketchybar --reload
 fi

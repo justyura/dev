@@ -31,6 +31,8 @@ run                   依次执行 runs/
 - **密钥不进仓库。** zsh 的密钥在 `~/.zsh_secrets`（权限 600），由 `.zshenv` 读取。
   各程序自己的 token 留在 `~/.config/<程序>/` 原位（这些目录不归 dev-env 管）。
 - **同步到别的机器**：这里 `git push`，那边 `git pull && ./dev-env`。
+- **两种模式**：`desktop` 管全部（这台 Mac）；`server` 只管 nvim、tmux、sessionizer 和 `~/.local/bin`，不碰 zsh 和桌面（arch、mini）。
+  每台机器在 `~/.config/dev-env.local` 写 `DEV_PROFILE=server`；不写时 macOS 默认 desktop，Linux 默认 server。
 
 ## 新机器
 

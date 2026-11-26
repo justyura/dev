@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# macOS：用 Homebrew 装开发工具和桌面这一套。
+# macOS：用 Homebrew 装开发工具；desktop 机器再加桌面这一套（yabai + skhd + sketchybar）。
 [[ $(uname -s) == Darwin ]] || exit 0
 set -euo pipefail
+cfg=${XDG_CONFIG_HOME:-$HOME/.config}/dev-env.local
+[[ -f $cfg ]] && source "$cfg"
+DEV_PROFILE=${DEV_PROFILE:-desktop}
+
 brew bundle --file=- <<'BREW'
-# 命令行
 brew "git"
 brew "neovim"
 brew "tmux"
@@ -11,7 +14,10 @@ brew "fzf"
 brew "ripgrep"
 brew "tree-sitter"
 brew "jq"
-# 桌面（yabai + skhd + sketchybar）
+BREW
+
+[[ $DEV_PROFILE == desktop ]] || exit 0
+brew bundle --file=- <<'BREW'
 tap "koekeishiya/formulae"
 brew "yabai"
 brew "skhd"
