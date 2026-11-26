@@ -1,0 +1,64 @@
+# 全局快捷键（配合 yabai）。
+# Keyrow 自身的点击、搜索、滚动配置见 keyrow/keyrowrc。
+
+# ========== Keyrow ==========
+ctrl + alt - j : ~/Applications/Keyrow.app/Contents/MacOS/Keyrow --clicking
+alt - k : ~/Applications/Keyrow.app/Contents/MacOS/Keyrow --search
+alt - j : ~/Applications/Keyrow.app/Contents/MacOS/Keyrow --scrolling
+
+# ========== 窗口 ==========
+shift + alt - h : /opt/homebrew/bin/yabai -m window --focus west
+shift + alt - l : /opt/homebrew/bin/yabai -m window --focus east
+alt - f : /opt/homebrew/bin/yabai -m window --toggle zoom-fullscreen
+
+# ========== 工作区 ==========
+# 最近使用的桌面。
+alt - b : ~/.config/scripts/yabai/workspace_history.sh next
+shift + alt - b : ~/.config/scripts/yabai/workspace_history.sh previous
+
+# Option+数字切换；Shift+Option+数字把当前窗口移过去并跟过去。0 = 第 10 块桌面。
+alt - 1 : ~/.config/scripts/sketchybar/space_focus.sh 1
+shift + alt - 1 : ~/.config/scripts/sketchybar/space_focus.sh 1 move
+alt - 2 : ~/.config/scripts/sketchybar/space_focus.sh 2
+shift + alt - 2 : ~/.config/scripts/sketchybar/space_focus.sh 2 move
+alt - 3 : ~/.config/scripts/sketchybar/space_focus.sh 3
+shift + alt - 3 : ~/.config/scripts/sketchybar/space_focus.sh 3 move
+alt - 4 : ~/.config/scripts/sketchybar/space_focus.sh 4
+shift + alt - 4 : ~/.config/scripts/sketchybar/space_focus.sh 4 move
+alt - 5 : ~/.config/scripts/sketchybar/space_focus.sh 5
+shift + alt - 5 : ~/.config/scripts/sketchybar/space_focus.sh 5 move
+alt - 6 : ~/.config/scripts/sketchybar/space_focus.sh 6
+shift + alt - 6 : ~/.config/scripts/sketchybar/space_focus.sh 6 move
+alt - 7 : ~/.config/scripts/sketchybar/space_focus.sh 7
+shift + alt - 7 : ~/.config/scripts/sketchybar/space_focus.sh 7 move
+alt - 8 : ~/.config/scripts/sketchybar/space_focus.sh 8
+shift + alt - 8 : ~/.config/scripts/sketchybar/space_focus.sh 8 move
+alt - 9 : ~/.config/scripts/sketchybar/space_focus.sh 9
+shift + alt - 9 : ~/.config/scripts/sketchybar/space_focus.sh 9 move
+alt - 0 : ~/.config/scripts/sketchybar/space_focus.sh 10
+shift + alt - 0 : ~/.config/scripts/sketchybar/space_focus.sh 10 move
+
+# ========== 应用与网页 ==========
+alt - return : open -a iTerm
+# 切到 iPad（Quick Connect）；karabiner 的 Option+I 规则配合发 Cmd+Space 让 iPad 拿到键盘焦点
+alt - i : $HOME/.local/bin/ipad-focus-kick --record; '/Users/yura/Applications/Quick Connect iPad.app/Contents/MacOS/QuickConnect' --toggle; ($HOME/.local/bin/ipad-focus-kick >/dev/null 2>&1 &)
+alt - c : open -a Safari; /opt/homebrew/bin/yabai -m space --focus "$(/opt/homebrew/bin/yabai -m query --windows | jq -r 'first(.[] | select(.app == "Safari") | .space)')" 2>/dev/null; true
+alt - o : ~/.config/scripts/search && /opt/homebrew/bin/yabai -m space --focus "$(/opt/homebrew/bin/yabai -m query --windows | jq -r 'first(.[] | select(.app == "Safari") | .space)')" 2>/dev/null; true
+alt - p : open "https://pkg.go.dev/std"; /opt/homebrew/bin/yabai -m space --focus "$(/opt/homebrew/bin/yabai -m query --windows | jq -r 'first(.[] | select(.app == "Safari") | .space)')" 2>/dev/null; true
+# shift + alt - p : open -a "PDF Expert"; /opt/homebrew/bin/yabai -m space --focus 7 2>/dev/null; true
+shift + alt - g : /opt/homebrew/bin/yabai -m space --focus "$(/opt/homebrew/bin/yabai -m query --windows | jq -r 'first(.[] | select(.app == "Goodnotes") | .space)')" 2>/dev/null; true
+shift + alt - d : ~/.config/scripts/apps/toggle_goodnotes.sh
+
+# ========== 栏与信息面板 ==========
+alt - w : ~/.config/scripts/sketchybar/toggle_bar.sh
+alt - z : ~/.config/scripts/sketchybar/zen.sh toggle   # Zen 模式：只留输入法和时钟
+alt - 0x32 : ~/.config/panel/bin/panel next
+ctrl + alt - 0 : ~/.config/panel/bin/panel start
+# shift + alt - s : ~/.config/panel/bin/panel standup-break
+
+# ========== 个人工具 ==========
+shift + alt - u : $HOME/.local/bin/photoshare-upload-clipboard
+shift + alt - left : ~/.config/scripts/lookup
+shift + alt - r : ~/.config/scripts/toggle_rotation.sh
+shift + alt - y : /opt/homebrew/bin/yabai --restart-service; /opt/homebrew/bin/skhd --restart-service
+

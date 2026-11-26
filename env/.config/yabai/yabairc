@@ -1,0 +1,75 @@
+#!/bin/sh
+# yabai：平铺行为、鼠标、窗口规则和事件信号。
+# 快捷键在 skhd/skhdrc 和 keyrow/keyrowrc；栏上的桌面高亮在 scripts/sketchybar/space.sh。
+# 工作区辅助脚本在 scripts/yabai/；alt+0 始终指向非主屏的第一块桌面。
+
+# shellcheck disable=SC3046,SC3051  # yabai 在 macOS shell 中加载配置；统一使用 source 引入共享库。
+# shellcheck source=scripts/lib/common.sh
+source "$HOME/.config/scripts/lib/common.sh"
+
+# Keyrow sets $YABAI to the binary it runs, so --load-sa and the SA payload match that build.
+yabai=${YABAI:-/opt/homebrew/bin/yabai}
+
+# ========== 脚本扩展：切桌面、跨桌面搬窗口都要靠它 ==========
+
+sudo "$yabai" --load-sa
+"$yabai" -m signal --add label=sa_reload event=dock_did_restart action="sudo $yabai --load-sa"
+
+# ========== 平铺 ==========
+
+"$yabai" -m config layout bsp
+"$yabai" -m config window_placement second_child
+"$yabai" -m config split_ratio 0.5
+"$yabai" -m config auto_balance off
+"$yabai" -m config window_animation_duration 0.00
+"$yabai" -m config window_opacity off
+# 边框：需要时使用 JankyBorders（yabai 7.x 已移除 window_border）。
+"$yabai" -m config insert_feedback_color 0xFFA3BE8C
+
+# 栏浮在窗口上方，四周不留边距；栏的显隐用 alt+w（scripts/sketchybar/toggle_bar.sh）。
+"$yabai" -m config external_bar all:0:0
+"$yabai" -m config top_padding 0
+"$yabai" -m config bottom_padding 0
+"$yabai" -m config left_padding 0
+"$yabai" -m config right_padding 0
+"$yabai" -m config window_gap 0
+
+# ========== 鼠标 ==========
+
+# 稳定优先：鼠标划过不再换焦点（原为 autoraise）
+"$yabai" -m config focus_follows_mouse autoraise
+"$yabai" -m config mouse_follows_focus on
+"$yabai" -m config mouse_modifier fn
+"$yabai" -m config mouse_action1 move
+"$yabai" -m config mouse_action2 resize
+"$yabai" -m config mouse_drop_action swap
+
+# ========== 规则：不参与平铺的窗口 ==========
+
+"$yabai" -m rule --add label=float_istat app="^iStat" manage=off sticky=on
+"$yabai" -m rule --add label=float_settings app="^System (Preferences|Settings)$" manage=off
+"$yabai" -m rule --add label=float_spotlight app="^Spotlight$" manage=off
+"$yabai" -m rule --add label=float_dict app="^Dictionary$" manage=off
+"$yabai" -m rule --add label=float_leaderkey app="^Leader Key$" manage=off
+"$yabai" -m rule --add label=float_wechat app="WeChat" manage=off
+"$yabai" -m rule --add label=float_screenshot app="^(screencaptureui|Screenshot|截屏|截图)$" manage=off
+"$yabai" -m rule --add label=things_native app="^Things$" manage=off sticky=off
+
+# ========== 信号 ==========
+
+# 最近使用的桌面历史，供 alt+b / shift+alt+b 导航。
+"$yabai" -m signal --add label=workspace_history event=space_changed action="$SCRIPTS_DIR/yabai/workspace_history.sh record"
+"$SCRIPTS_DIR/yabai/workspace_history.sh" sync
+"$SCRIPTS_DIR/yabai/workspace_history.sh" record
+
+# 桌面增删切换 -> 刷新栏上的桌面指示器。
+for event in space_changed space_created space_destroyed; do
+  "$yabai" -m signal --add label="bar_$event" event="$event" action="sketchybar --trigger space_change"
+done
+
+# 窗口、应用、桌面或显示器切换 -> 退出栏上的 Things 清单键盘模式，免得它一直占着按键。
+for event in window_focused application_front_switched space_changed display_changed; do
+  "$yabai" -m signal --add label="things_nav_$event" event="$event" action="$HOME/personal/things/things_nav.sh focus_changed"
+done
+
+echo "yabai configuration loaded.."

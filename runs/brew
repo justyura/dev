@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# macOS：用 Homebrew 装开发工具和桌面这一套。
+[[ $(uname -s) == Darwin ]] || exit 0
+set -euo pipefail
+brew bundle --file=- <<'BREW'
+# 命令行
+brew "git"
+brew "neovim"
+brew "tmux"
+brew "fzf"
+brew "ripgrep"
+brew "tree-sitter"
+brew "jq"
+# 桌面（yabai + skhd + sketchybar）
+tap "koekeishiya/formulae"
+brew "yabai"
+brew "skhd"
+tap "FelixKratz/formulae"
+brew "sketchybar"
+brew "choose-gui"
+brew "displayplacer"
+cask "kitty"
+BREW

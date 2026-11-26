@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# 依次执行 runs/ 里的安装脚本（来自 ThePrimeagen/dev 的 run，改成 macOS 也能用）。
+#
+# 用法：./run            全部执行
+#       ./run brew       只执行名字里带 brew 的
+#       ./run --dry      只打印会执行哪些
+# 每个 runs/ 脚本自己判断系统，不适用就直接退出。
+set -euo pipefail
+
+DEV_ENV=${DEV_ENV:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
+export DEV_ENV
+
+filter=""
+dry=0
+for arg in "$@"; do
+    if [[ $arg == "--dry" ]]; then dry=1; else filter=$arg; fi
+done
+
+for s in "$DEV_ENV"/runs/*; do
+    [[ -f $s && -x $s ]] || continue
+    name=$(basename "$s")
+    if [[ -n $filter && $name != *"$filter"* ]]; then
+        continue
+    fi
+    if [[ $dry == 1 ]]; then
+        echo "[DRY_RUN]: would run $name"
+    else
+        echo "running $name"
+        "$s"
+    fi
+done

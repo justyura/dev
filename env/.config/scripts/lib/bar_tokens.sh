@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# 提供 SketchyBar 主栏与插件共用的布局、字号和几何 token。
+# 用法：先 source common.sh，再 source 本文件。
+# shellcheck disable=SC2034  # token 由 source 它的配置和插件按需使用。
+
+BAR_HEIGHT=22          # 顶部栏高度。
+BAR_MARGIN=6           # 顶部栏与屏幕左右边缘留白。
+BAR_Y_OFFSET=0         # 顶部栏与屏幕上边缘留白：栏浮在窗口上方，尽量贴顶少挡内容。
+BAR_PADDING=6          # 顶部栏左右内边距。
+BAR_PADDING_RIGHT=56    # 顶部栏右内边距：胶囊离屏幕右边缘稍远一点。
+CAPSULE_HEIGHT=20      # 三组主胶囊高度。
+CAPSULE_RADIUS=8       # 三组主胶囊圆角。
+CAPSULE_PADDING=6      # 胶囊内容边距。
+CAPSULE_GAP=8          # 胶囊之间的间距。
+ITEM_GAP=4             # 胶囊内部条目间距。
+ITEM_HEIGHT=18         # 常规条目高度。
+ITEM_HEIGHT_COMPACT=12 # 紧凑条目高度。
+PROGRESS_HEIGHT=4      # 细进度条高度。
+SMALL_RADIUS=6         # space、输入法框和细条圆角。
+PROGRESS_RADIUS=2      # 四像素进度条圆角。
+
+ICON_WIDTH=24             # 常规图标占位宽度。
+SPACE_WIDTH=18            # space 小方块宽度。
+PROJECT_WIDTH=88          # 项目名约十二个字符的宽度。
+AGENT_RING_WIDTH=16       # agent 圆环直径。
+AGENT_WIDTH=28            # agent 条目总宽度。
+STANDUP_RING_WIDTH=16     # 站立圆环直径。
+STANDUP_LABEL_WIDTH=30    # 站立剩余分钟宽度。
+USAGE_BAR_WIDTH=26        # 单条 AI 用量细条宽度。
+USAGE_IMAGE_DUAL_WIDTH=56 # Claude 两条用量图宽度。
+USAGE_IMAGE_WEEK_WIDTH=26 # Codex 单条用量图宽度。
+USAGE_LOGO_WIDTH=38       # Cl / Cx 标签与 agent 计数宽度。
+USAGE_RESET_WIDTH=0       # 重置倒计时不额外占用栏宽。
+INPUT_WIDTH=22            # 输入法小框宽度。
+INPUT_HEIGHT=20           # 输入法小框高度。
+CALENDAR_DATE_WIDTH=62    # 星期和日期宽度。
+CALENDAR_TIME_WIDTH=36    # 粗体时间宽度。
+FOCUS_TASK_WIDTH=300      # 专注任务文字宽度。
+FOCUS_CLOCK_WIDTH=50      # 专注倒计时宽度。
+FOCUS_PROGRESS_WIDTH=72   # 专注进度条宽度。
+TODAY_PROGRESS_WIDTH=70   # 今日进度细条宽度。
+TODAY_LABEL_WIDTH=54      # 今日百分比文字宽度。
+FRONT_APP_MAX_CHARS=12    # 前台应用最大字符数。
+PROJECT_MAX_CHARS=12      # 项目名最大字符数。
+FOCUS_TASK_MAX_CHARS=40   # 专注任务最大字符数。
+SLIDER_MAX=100            # SketchyBar slider 满值。
+
+POPUP_Y_OFFSET=6          # 弹窗与栏的垂直间距。
+POPUP_RADIUS=10           # 弹窗圆角。
+POPUP_BLUR=24             # 弹窗背景模糊半径。
+POPUP_SHADOW_DISTANCE=8   # 弹窗阴影距离。
+POPUP_SHADOW_ANGLE=90     # 弹窗阴影角度。
+POPUP_PADDING=12          # 弹窗通用边距。
+POPUP_ROW_RADIUS=5        # 弹窗行圆角。
+POPUP_ROW_HEIGHT=30       # 弹窗常规行高。
+POPUP_DETAIL_HEIGHT=24    # agent 详情行高。
+POPUP_EMPTY_HEIGHT=32     # agent 空状态行高。
+POPUP_FOOTER_HEIGHT=28    # 弹窗底栏高度。
+POPUP_HEADER_HEIGHT=40    # Things 弹窗标题高度。
+BORDER_WIDTH=1            # 常规边框宽度。
+NO_BORDER=0               # 关闭边框时的宽度。
+NO_PADDING=0              # 关闭内边距时的值。
+TIGHT_PADDING=2           # 紧凑内边距。
+MEDIUM_PADDING=6          # 常规内边距。
+LARGE_PADDING=8           # 宽松内边距。
+POPUP_TEXT_PADDING=14     # 弹窗文字右边距。
+POPUP_TITLE_PADDING=16    # Things 标题边距。
+AGENT_ICON_PADDING=66     # agent 会话名起始位置。
+AGENT_APP_PADDING=36      # agent app 图标起始位置。
+AGENT_NAME_WIDTH=260      # agent 会话名宽度。
+AGENT_META_WIDTH=200      # agent 元信息宽度。
+AGENT_DETAIL_WIDTH=460    # agent prompt 宽度。
+IMAGE_SCALE_SMALL=0.5     # 二倍图通用显示比例。
+IMAGE_SCALE_APP=0.65      # app 图标显示比例。
+IMAGE_SCALE_AGENT_APP=0.6 # agent 弹窗 app 图标比例。
+IMAGE_SCALE_STATUS=0.55   # agent 状态图比例。
+IMAGE_SCALE_THINGS=0.72   # Things 图标显示比例。
+
+FONT_TITLE="SF Pro:Semibold:13.0"                      # 小标题和强调文字。
+FONT_BODY="SF Pro:Medium:12.0"                         # 栏内正文。
+FONT_SMALL="SF Pro:Medium:10.0"                        # 栏内辅助小字。
+FONT_SMALL_BOLD="SF Pro:Semibold:10.0"                 # 项目名等小号粗体。
+FONT_CLOCK="SF Pro:Medium:12.0"                        # 等宽数字时钟。
+FONT_POPUP_TITLE="SF Pro:Semibold:14.0"                # 弹窗标题。
+FONT_POPUP_BODY="SF Pro:Medium:12.0"                   # 弹窗正文。
+FONT_POPUP_EMPTY="SF Pro:Medium:15.0"                  # 弹窗空状态。
+FONT_POPUP_FOOTER="SF Pro:Medium:11.0"                 # 弹窗底栏。
+FONT_THINGS_ICON="Hack Nerd Font:Regular:18.0"         # Things 复选框图标。
+THINGS_FONT_SIZE=15                                    # Things 清单正文字号。
+FONT_THINGS_BODY="SF Pro:Medium:${THINGS_FONT_SIZE}.0" # Things 清单正文字体。
+THINGS_LINE_HEIGHT=28                                  # Things 清单行高。
+THINGS_INDENT=40                                       # Things 续行文字缩进。
+THINGS_ROW_PADDING=8                                   # Things 清单行左右内边距。
+THINGS_ICON_RIGHT_PADDING=10                           # Things 复选框右边距。
+
+CAPSULE_BG=$(color_alpha "$COLOR_SURFACE" b3)      # 主胶囊半透明底色：栏浮在窗口上方。
+CAPSULE_BORDER=$(color_alpha "$COLOR_BORDER" 80)   # 主胶囊半透明边框色。
+POPUP_COLOR=$(color_alpha "$COLOR_BG" f2)          # 半透明弹窗底色。
+SHADOW_COLOR=$(color_alpha "$COLOR_BG" 80)         # 弹窗阴影色。
+ROW_TRANSPARENT=$(color_alpha "$COLOR_SURFACE" 00) # 透明弹窗行底色。
+SELECTION_COLOR=$(color_alpha "$COLOR_ACCENT" 40)  # 多选行底色。

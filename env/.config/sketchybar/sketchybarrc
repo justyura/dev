@@ -1,0 +1,224 @@
+#!/bin/bash
+# 配置主 SketchyBar 的顶部横向栏，显示 space、前台应用、输入法和日期时间。
+
+# shellcheck source=scripts/lib/common.sh
+source "$HOME/.config/scripts/lib/common.sh"
+# shellcheck source=scripts/lib/bar_tokens.sh
+source "$SCRIPTS_DIR/lib/bar_tokens.sh"
+
+PLUGIN_DIR="$SCRIPTS_DIR/sketchybar"
+
+# reload 会重建条目，上次进程的渲染签名不能用于判定新条目已就绪。
+rm -f "$HOME/.cache/sketchybar/space.rendered"
+
+# 副显示器专用于信息面板，主栏只显示在主显示器。
+sketchybar --bar \
+  display=main \
+  height="$BAR_HEIGHT" \
+  margin="$BAR_MARGIN" \
+  y_offset="$BAR_Y_OFFSET" \
+  blur_radius="$NO_BORDER" \
+  position=top \
+  sticky=on \
+  topmost=window \
+  shadow=off \
+  padding_left="$BAR_PADDING" \
+  padding_right="$BAR_PADDING_RIGHT" \
+  color="$COLOR_TRANSPARENT" \
+  border_width="$NO_BORDER" \
+  corner_radius="$NO_BORDER" \
+  --default \
+  icon.font="$FONT_BODY" \
+  icon.color="$COLOR_TEXT" \
+  label.font="$FONT_BODY" \
+  label.color="$COLOR_TEXT" \
+  padding_left="$ITEM_GAP" \
+  padding_right="$ITEM_GAP" \
+  background.drawing=off
+
+# ===== Zen 模式 =====
+# 点击只留 Zen 按钮、PhotoShare、space、输入法和时钟；再点一次还原。
+
+sketchybar --add item zen right \
+  --set zen \
+  icon="◎" \
+  icon.font="$FONT_TITLE" \
+  icon.color="$COLOR_BORDER" \
+  icon.width="$ICON_WIDTH" \
+  icon.align=center \
+  label.drawing=off \
+  background.drawing=off \
+  padding_left="$NO_PADDING" \
+  padding_right="$NO_PADDING" \
+  click_script="$PLUGIN_DIR/zen.sh toggle"
+
+# ===== PhotoShare 剪贴板上传 =====
+
+sketchybar --add item photoshare_upload right \
+  --set photoshare_upload \
+  icon="↑" \
+  icon.font="$FONT_TITLE" \
+  icon.color="$COLOR_SUBTEXT" \
+  icon.width="$ICON_WIDTH" \
+  icon.align=center \
+  label.drawing=off \
+  background.drawing=on \
+  background.color="$COLOR_TRANSPARENT" \
+  background.corner_radius="$SMALL_RADIUS" \
+  background.height="$ITEM_HEIGHT" \
+  padding_left="$NO_PADDING" \
+  padding_right="$NO_PADDING" \
+  click_script="$HOME/.local/bin/photoshare-upload-clipboard"
+
+# ===== space =====
+
+SPACE_ARGS=()
+for i in {1..10}; do
+  SPACE_ARGS+=(
+    --add item "space.$i" right
+    --set "space.$i"
+    icon="$i"
+    icon.font="$FONT_BODY"
+    icon.color="$COLOR_MUTED"
+    icon.highlight_color="$COLOR_ON_ACCENT"
+    label.drawing=off
+    background.drawing=on
+    background.color="$COLOR_TRANSPARENT"
+    background.corner_radius="$SMALL_RADIUS"
+    background.height="$SPACE_WIDTH"
+    icon.padding_left="$CAPSULE_PADDING"
+    icon.padding_right="$CAPSULE_PADDING"
+    width="$SPACE_WIDTH"
+    padding_left="$NO_PADDING"
+    padding_right="$NO_PADDING"
+    click_script="$PLUGIN_DIR/space_focus.sh $i"
+  )
+done
+sketchybar "${SPACE_ARGS[@]}"
+
+sketchybar --add event space_change \
+  --set space.1 script="$PLUGIN_DIR/space.sh" \
+  --subscribe space.1 space_change space_windows_change mouse.clicked mouse.entered mouse.exited
+for i in $(seq 2 10); do
+  sketchybar --set "space.$i" script="$PLUGIN_DIR/hover.sh" \
+    --subscribe "space.$i" mouse.clicked mouse.entered mouse.exited
+done
+
+# ===== 前台应用 =====
+
+sketchybar --add item front_app right \
+  --set front_app \
+  icon.drawing=off \
+  label.font="$FONT_SMALL_BOLD" \
+  label.color="$COLOR_SUBTEXT" \
+  label.max_chars="$FRONT_APP_MAX_CHARS" \
+  background.drawing=off \
+  script="$PLUGIN_DIR/front_app.sh" \
+  --subscribe front_app front_app_switched
+
+# ===== 时钟 =====
+
+sketchybar \
+  --add item calendar right \
+  --set calendar \
+  update_freq=30 \
+  updates=when_shown \
+  icon.drawing=off \
+  label.font="$FONT_TITLE" \
+  label.color="$COLOR_TEXT" \
+  label.width="$CALENDAR_TIME_WIDTH" \
+  label.align=center \
+  background.drawing=off \
+  padding_left="$ITEM_GAP" \
+  padding_right="$ITEM_GAP" \
+  script="$PLUGIN_DIR/calendar.sh" \
+  click_script="$PLUGIN_DIR/zen.sh toggle" \
+  --subscribe calendar system_woke
+
+# ===== 输入法 =====
+# 时钟左侧：中 / 英（鼠须管内部模式，Rime 的 lua/ascii_status.lua 触发 input_method_change）/ US（系统输入法被切到 U.S.）
+# 点击：US 时切回鼠须管；鼠须管里切换中英（input_method.sh）
+
+sketchybar \
+  --add event input_source_change AppleSelectedInputSourcesChangedNotification \
+  --add event input_method_change \
+  --add item input_method right \
+  --set input_method \
+  icon.drawing=off \
+  label.font="$FONT_BODY" \
+  label.color="$COLOR_TEXT" \
+  label.width="$INPUT_WIDTH" \
+  label.align=center \
+  padding_left="$NO_PADDING" \
+  padding_right="$NO_PADDING" \
+  script="$PLUGIN_DIR/input_method.sh" \
+  --subscribe input_method input_source_change input_method_change front_app_switched system_woke \
+  mouse.clicked mouse.entered mouse.exited \
+  --add bracket input_method.bracket input_method \
+  --set input_method.bracket \
+  background.color="$COLOR_SURFACE" \
+  background.border_width="$BORDER_WIDTH" \
+  background.border_color="$COLOR_BORDER" \
+  background.corner_radius="$SMALL_RADIUS" \
+  background.height="$INPUT_HEIGHT" \
+  --add item input_method.gap right \
+  --set input_method.gap width="$CAPSULE_GAP" icon.drawing=off label.drawing=off
+
+# ===== 左右横向胶囊 =====
+
+sketchybar \
+  --add item separator.left right \
+  --set separator.left width="$BORDER_WIDTH" background.drawing=on background.color="$COLOR_BORDER" \
+  background.height="$ITEM_HEIGHT_COMPACT" icon.drawing=off label.drawing=off \
+  padding_left="$ITEM_GAP" padding_right="$ITEM_GAP"
+
+for i in {1..10}; do
+  sketchybar --set "space.$i" \
+    icon.font="$FONT_BODY" icon.color="$COLOR_MUTED" icon.highlight_color="$COLOR_ON_ACCENT" \
+    background.color="$COLOR_TRANSPARENT" background.highlight_color="$COLOR_ACCENT" \
+    background.corner_radius="$SMALL_RADIUS" background.height="$SPACE_WIDTH"
+done
+
+sketchybar \
+  --set front_app label.drawing=on label.font="$FONT_SMALL" label.color="$COLOR_SUBTEXT" \
+  label.max_chars="$FRONT_APP_MAX_CHARS" icon.drawing=off background.drawing=off \
+  --set input_method label.width="$INPUT_WIDTH" label.font="$FONT_BODY" label.color="$COLOR_TEXT" \
+  background.drawing=off \
+  --set input_method.bracket drawing=off \
+  --set input_method.gap drawing=off \
+  --set calendar icon.drawing=off label.font="$FONT_TITLE" label.color="$COLOR_TEXT" label.width="$CALENDAR_TIME_WIDTH"
+
+sketchybar \
+  --add bracket capsule.left front_app separator.left zen photoshare_upload space.1 space.2 space.3 space.4 space.5 space.6 space.7 space.8 space.9 space.10 \
+  --add bracket capsule.right input_method calendar
+
+for capsule in capsule.left capsule.right; do
+  sketchybar --set "$capsule" \
+    background.drawing=on background.color="$CAPSULE_BG" background.border_width="$BORDER_WIDTH" \
+    background.border_color="$CAPSULE_BORDER" background.corner_radius="$CAPSULE_RADIUS" \
+    background.height="$CAPSULE_HEIGHT"
+done
+
+# 两组胶囊都靠右：窗口不再为栏预留顶部空白，左上角要让给窗口的红绿灯。
+# 视觉顺序：[前台应用 | Zen ↑ space] [输入法 时钟]；前台应用放最左，名字变长时 space 不会跟着挪。
+sketchybar --add item capsule.gap right \
+  --set capsule.gap width="$CAPSULE_GAP" icon.drawing=off label.drawing=off \
+  padding_left="$NO_PADDING" padding_right="$NO_PADDING"
+
+# right 区域从右边缘按参数顺序排列，因此这里按期望视觉顺序的逆序书写。
+sketchybar --reorder \
+  calendar input_method capsule.gap \
+  space.10 space.9 space.8 space.7 space.6 space.5 space.4 space.3 space.2 space.1 \
+  photoshare_upload zen separator.left front_app
+
+"$PLUGIN_DIR/zen.sh" apply
+SENDER=forced NAME=space.1 "$PLUGIN_DIR/space.sh"
+
+sketchybar --update
+
+# 以状态文件为准恢复可见性；首次加载没有状态文件时显示。
+if [ -f /tmp/yabai_top_padding_hidden ]; then
+  sketchybar --bar hidden=true
+else
+  sketchybar --bar hidden=false
+fi

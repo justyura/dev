@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# macOS：编译并安装 ThingsKeys（Things 3 的 hjkl 导航）。源码在独立项目 ~/personal/things。
+[[ $(uname -s) == Darwin ]] || exit 0
+set -euo pipefail
+dir="$HOME/personal/things"
+[[ -d $dir ]] || { echo "things: 找不到 $dir，先 clone 它"; exit 1; }
+make -C "$dir" install

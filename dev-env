@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# 把 env/ 里的配置复制到家目录。
+# 来自 ThePrimeagen/dev 的 dev-env，改动：同时支持 macOS 和 Linux；~/.local/bin 按文件复制。
+#
+# 用法：./dev-env          应用
+#       ./dev-env --dry    只打印会做什么，不改动
+#
+# 规则：
+#   env/.config/<目录>  → 整个替换 ~/.config/<目录>（只动仓库里有的目录，其他不碰）
+#   env/.local/bin/<文件> → 逐个覆盖 ~/.local/bin/<文件>（那里还有别的程序装的东西，不能整个删）
+#   env/.zshrc 等单个文件 → 覆盖 ~/ 下同名文件
+# 源头永远在这个仓库：改配置要改这里，再跑一次 dev-env。
+set -euo pipefail
+
+DEV_ENV=${DEV_ENV:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+OS=$(uname -s)
+
+# 只在 macOS 上复制的目录
+MACOS_ONLY=(karabiner sketchybar skhd yabai)
+# 家目录下的单个文件
+HOME_FILES=(.zshrc .zshenv .zprofile)
+
+dry=0
+[[ ${1:-} == "--dry" ]] && dry=1
+
+log() {
+    if [[ $dry == 1 ]]; then echo "[DRY_RUN]: $*"; else echo "$*"; fi
+}
+
+run() {
+    log "    $*"
+    [[ $dry == 1 ]] || "$@"
+}
+
+is_macos_only() {
+    local name=$1 m
+    for m in "${MACOS_ONLY[@]}"; do [[ $m == "$name" ]] && return 0; done
+    return 1
+}
+
+log "env: $DEV_ENV  ($OS)"
+
+log "~/.config:"
+for src in "$DEV_ENV"/env/.config/*/; do
+    src=${src%/}
+    name=$(basename "$src")
+    if [[ $OS != Darwin ]] && is_macos_only "$name"; then
+        log "    skip $name (macOS only)"
+        continue
+    fi
+    run rm -rf "${XDG_CONFIG_HOME:?}/$name"
+    run cp -R "$src" "$XDG_CONFIG_HOME/$name"
+done
+
+log "~/.local/bin:"
+run mkdir -p "$HOME/.local/bin"
+for f in "$DEV_ENV"/env/.local/bin/*; do
+    [[ -f $f ]] || continue
+    run cp "$f" "$HOME/.local/bin/$(basename "$f")"
+done
+
+log "~/:"
+for f in "${HOME_FILES[@]}"; do
+    [[ -f $DEV_ENV/env/$f ]] || continue
+    run cp "$DEV_ENV/env/$f" "$HOME/$f"
+done
+
+# 让正在运行的程序读到新配置
+log "reload:"
+if command -v tmux >/dev/null && tmux info &>/dev/null; then
+    run tmux source-file "$XDG_CONFIG_HOME/tmux/tmux.conf"
+fi
+if [[ $OS == Darwin ]]; then
+    command -v skhd >/dev/null && run skhd --reload
+    command -v sketchybar >/dev/null && run sketchybar --reload
+fi
+log "done. 新开的终端才会读到新的 zsh 配置（或者运行 exec zsh）。"
