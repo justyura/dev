@@ -211,7 +211,6 @@ ks() {
 # }
 
 # PATH
-export PATH="$HOME/bin:$PATH"
 export PATH=$PATH:$(go env GOPATH 2>/dev/null)/bin
 export PATH="$PATH:/Users/yura/.local/bin"
 export PATH="$PATH:$HOME/.config/agent-tracker/bin"

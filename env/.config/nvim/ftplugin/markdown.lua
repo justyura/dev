@@ -25,7 +25,7 @@ local function list_run(args, done_msg)
   end
   if vim.bo.modified then vim.cmd("silent write") end
   table.insert(args, file)
-  vim.system(vim.list_extend({ vim.fn.expand("~/bin/list") }, args), { text = true }, function(r)
+  vim.system(vim.list_extend({ vim.fn.expand("~/.local/bin/list") }, args), { text = true }, function(r)
     vim.schedule(function()
       local out = vim.trim((r.stdout or "") .. (r.stderr or ""))
       if r.code == 0 then
